@@ -7,6 +7,7 @@ use App\Models\Plan;
 use App\Observers\UserObserver;
 use App\Observers\PlanObserver;
 use App\Providers\AssetServiceProvider;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(\App\Services\WebhookService::class);
-        
+
         // Register our AssetServiceProvider
         $this->app->register(AssetServiceProvider::class);
     }
@@ -27,9 +28,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         // Register the UserObserver
         User::observe(UserObserver::class);
-        
+
         // Register the PlanObserver
         Plan::observe(PlanObserver::class);
 
