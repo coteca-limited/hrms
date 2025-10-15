@@ -11,13 +11,17 @@ services:
     env_file: ../src/.env
     environment:
       - CONTAINER_ROLE=fpm
-      - PHP_OPCACHE_ENABLED=0
-      - PHP_MEMORY_LIMIT=512M
-      - PM_MAX_CHILDREN=3
-      - PM_START_SERVERS=1
+      - PHP_OPCACHE_ENABLED=1
+      - PHP_OPCACHE_MEMORY_CONSUMPTION=128
+      - PHP_OPCACHE_MAX_ACCELERATED_FILES=20000
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0  # set 1 in dev
+      - PHP_MEMORY_LIMIT=256M
+      - PM=dynamic
+      - PM_MAX_CHILDREN=4
+      - PM_START_SERVERS=2
       - PM_MIN_SPARE_SERVERS=1
       - PM_MAX_SPARE_SERVERS=2
-      - PM_MAX_REQUEST=50
+      - PM_MAX_REQUEST=300
     build:
       context: ../
       dockerfile: build/php/Dockerfile
