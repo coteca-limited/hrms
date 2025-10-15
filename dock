@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -e
+
+export $(cat src/.env | sed 's/#.*//g' | xargs)
+
+APP_USER="kdock"
+if [ "$1" == "local" ]; then
+    COMPOSE="docker compose -f deploy/docker-compose.local.yml"
+elif [ "$1" == "stage" ]; then
+    COMPOSE="docker compose -f deploy/docker-compose.stage.yml"
+else
+    COMPOSE="docker compose -f deploy/docker-compose.yml"
+fi
+
+COMMAND="${COMPOSE}"
+
+if [ $# -gt 0 ]; then
+
+    if [ "$2" == "build" ]; then
+
+        ${COMPOSE} up --build --detach
+
+    elif [ "$2" == "up" ]; then
+
+         ${COMPOSE} up --detach
+    elif [ "$2" == "clean" ]; then
+        docker system prune
+
+    elif [ "$2" == "exec" ]; then
+        shift 2
+        ARGS="$@"
+  	    ${COMMAND} exec --user ${APP_USER} hrms-fpm /bin/sh -c "$ARGS"
+
+    elif [ "$2" == "artisan" ]; then
+        shift 2
+        ARGS="$@"
+
+        ${COMMAND} exec --user ${APP_USER} hrms-fpm /bin/sh -c "php artisan $ARGS"
+
+    elif [ "$2" == "composer" ]; then
+        shift 2
+        ARGS="$@"
+        ${COMMAND} exec --user ${APP_USER} hrms-fpm /bin/sh -c "composer $ARGS"
+
+    elif [ "$2" == "pint" ]; then
+        shift 2
+        ARGS="$@"
+        ${COMMAND} exec --user ${APP_USER} hrms-fpm /bin/sh -c "./vendor/bin/pint $ARGS"
+    elif [ "$2" == "npm" ]; then
+        shift 2
+        ARGS="$@"
+        ${COMMAND} exec --user ${APP_USER} hrms-fpm /bin/sh -c "npm $ARGS"
+    else
+        ${COMPOSE} "$@"
+    fi
+else
+    echo "Please provide argument"
+fi

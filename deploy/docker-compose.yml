@@ -1,0 +1,60 @@
+networks:
+  hrms:
+    name: hrms
+
+volumes:
+  db:
+    driver: local
+
+services:
+  hrms-fpm:
+    env_file: ../src/.env
+    environment:
+      - CONTAINER_ROLE=fpm
+      - PHP_OPCACHE_ENABLED=0
+      - PHP_MEMORY_LIMIT=2048M
+      - PM_MAX_CHILDREN=5
+      - PM_START_SERVERS=1
+      - PM_MIN_SPARE_SERVERS=1
+      - PM_MAX_SPARE_SERVERS=2
+      - PM_MAX_REQUEST=300
+    build:
+      context: ../
+      dockerfile: build/php/Dockerfile
+      target: php
+    volumes:
+      - ../src:/app
+    networks:
+      - hrms
+  nginx:
+    env_file: ../src/.env
+    build:
+      context: ../
+      dockerfile: build/nginx/Dockerfile
+      target: nginx
+    volumes:
+      - ../src:/app
+    depends_on:
+      - hrms-fpm
+      - mysql
+    ports:
+      - '80:80'
+    networks:
+      - hrms
+
+  mysql:
+    image: mysql:8.0
+    env_file: ../src/.env
+    restart: always
+    environment:
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    command: mysqld --sql_mode="" --character-set-server=utf8 --collation-server=utf8_slovenian_ci --init-connect='SET NAMES UTF8;' --innodb-flush-log-at-trx-commit=0
+    ports:
+      - '3306:3306'
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - hrms
