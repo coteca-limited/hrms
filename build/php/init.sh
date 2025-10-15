@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Copy storage"
-rsync -av /app/storage/* /storage
+rsync -av /src/storage/* /storage
 
 echo "Run migration"
 php artisan migrate --force

@@ -12,12 +12,12 @@ services:
     environment:
       - CONTAINER_ROLE=fpm
       - PHP_OPCACHE_ENABLED=0
-      - PHP_MEMORY_LIMIT=2048M
-      - PM_MAX_CHILDREN=5
+      - PHP_MEMORY_LIMIT=512M
+      - PM_MAX_CHILDREN=3
       - PM_START_SERVERS=1
       - PM_MIN_SPARE_SERVERS=1
       - PM_MAX_SPARE_SERVERS=2
-      - PM_MAX_REQUEST=300
+      - PM_MAX_REQUEST=50
     build:
       context: ../
       dockerfile: build/php/Dockerfile
