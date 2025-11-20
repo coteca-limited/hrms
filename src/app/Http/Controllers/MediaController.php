@@ -22,7 +22,7 @@ class MediaController extends Controller
         $user = auth()->user();
         $directoryId = request('directory_id');
 
-        $mediaQuery = Media::WithPermissionCheck();
+        $mediaQuery = Media::query();
 
         // Filter by directory
         if ($directoryId) {

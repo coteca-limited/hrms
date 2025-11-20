@@ -29,3 +29,6 @@ src/.phpunit.result.cache
 .env.production
 .phpactor.json
 auth.json
+
+src/storage/
+/src/config/debugbar.php
