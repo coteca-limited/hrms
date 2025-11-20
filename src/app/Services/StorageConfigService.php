@@ -152,7 +152,7 @@ class StorageConfigService
         return [
             'disk' => 'public',
             'allowed_file_types' => 'jpg,jpeg,png,webp,gif,pdf,doc,docx,txt,csv',
-            'max_file_size_mb' => 2,
+            'max_file_size_mb' => 100,
             's3' => [],
             'wasabi' => []
         ];
