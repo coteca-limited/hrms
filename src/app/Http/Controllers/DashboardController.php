@@ -137,16 +137,12 @@ class DashboardController extends Controller
 
         $companyUserIds = $this->getCompanyUserIds();
 
-        // Get date range from request, default to today if specified, otherwise no filtering
-        $startDate = request('start_date') ? \Carbon\Carbon::parse(request('start_date')) : \Carbon\Carbon::today();
-        $endDate = request('end_date') ? \Carbon\Carbon::parse(request('end_date')) : \Carbon\Carbon::today();
-
-        // Core HR Statistics (not filtered by date range)
+        // Core HR Statistics
         $totalEmployees = User::where('type', 'employee')->whereIn('created_by', $companyUserIds)->count();
         $totalBranches = \App\Models\Branch::whereIn('created_by', $companyUserIds)->count();
         $totalDepartments = \App\Models\Department::whereIn('created_by', $companyUserIds)->count();
 
-        // Monthly Statistics (not filtered by date range)
+        // Monthly Statistics
         $newEmployeesThisMonth = \App\Models\Employee::whereIn('created_by', $companyUserIds)
             ->whereMonth('created_at', now()->month)->count();
         $jobPostsThisMonth = \App\Models\JobPosting::whereIn('created_by', $companyUserIds)
@@ -156,11 +152,7 @@ class DashboardController extends Controller
 
         // Attendance Statistics with date range filtering
         $presentToday = \App\Models\AttendanceRecord::whereIn('created_by', $companyUserIds)
-            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
-                return $query->whereBetween('date', [$startDate, $endDate]);
-            })
-            ->where('status', 'present')
-            ->count();
+            ->whereDate('date', today())->where('status', 'present')->count();
 
         // Calculate absent today as total employees minus present employees
         $absentToday = $totalEmployees - $presentToday;
@@ -168,18 +160,10 @@ class DashboardController extends Controller
         $attendanceRate = $totalEmployees > 0 ? round(($presentToday / $totalEmployees) * 100, 1) : 0;
 
         // Leave Statistics with date range filtering for pending leaves
-        $pendingLeavesQuery = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
-            ->where('status', 'pending');
+        $pendingLeaves = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
+            ->where('status', 'pending')->count();
 
-        if ($startDate && $endDate) {
-            $pendingLeaves = $pendingLeavesQuery
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
-        } else {
-            $pendingLeaves = $pendingLeavesQuery->count();
-        }
-
-        // On leave today statistics (not filtered by date range)
+        // On leave today statistics
         $onLeaveTodayQuery = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
             ->where('status', 'approved');
 
@@ -192,12 +176,12 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        // Other statistics (not filtered by date range)
+        // Other statistics
         $activeJobPostings = \App\Models\JobPosting::whereIn('created_by', $companyUserIds)
             ->where('status', 'Published')->count();
         $totalCandidates = \App\Models\Candidate::whereIn('created_by', $companyUserIds)->count();
 
-        // Department Distribution for Chart (not filtered by date range)
+        // Department Distribution for Chart
         $predefinedColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#D946EF'];
 
         $departmentStats = \App\Models\Department::whereIn('created_by', $companyUserIds)
@@ -219,7 +203,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Other chart data (not filtered by date range)
+        // Other chart data
         $hiringTrend = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
@@ -276,7 +260,7 @@ class DashboardController extends Controller
             ];
         }
 
-        // Recent Activities (not filtered by date range)
+        // Recent Activities
         $recentLeaves = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
             ->with(['employee', 'leaveType']);
         if (config('app.is_demo') == true) {
