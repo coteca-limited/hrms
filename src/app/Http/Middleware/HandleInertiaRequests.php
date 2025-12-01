@@ -10,6 +10,7 @@ use App\Models\LeaveApplication;
 use App\Models\Employee;
 use App\Models\Complaint;
 use App\Models\NotificationRead;
+use App\Models\Award;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -170,6 +171,21 @@ class HandleInertiaRequests extends Middleware
                     'date'      => $c->complaint_date?->format('Y-m-d'),
                     'read'      => $isRead('complaints', $c->id),
                 ]),
+
+            'awards' => Award::with(['employee', 'awardType'])
+                ->whereDate('award_date', now()) // Award date is today
+                ->orderBy('award_date', 'desc')
+                ->get()
+                ->map(fn($a) => [
+                    'id'          => $a->id,
+                    'employee'    => $a->employee?->name,
+                    'award_type'  => $a->awardType?->name,
+                    'gift'        => $a->gift,
+                    'value'       => $a->monetary_value,
+                    'date'        => $a->award_date,
+                    'read'        => $isRead('awards', $a->id),
+                ]),
+
         ];
     }
 

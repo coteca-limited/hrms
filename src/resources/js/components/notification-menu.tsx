@@ -20,7 +20,8 @@ export const NotificationMenu: React.FC = () => {
         (data?.leaves?.filter(x => !x.read)?.length || 0) +
         (data?.birthdays?.filter(x => !x.read)?.length || 0) +
         (data?.anniversary?.filter(x => !x.read)?.length || 0) +
-        (data?.complaints?.filter(x => !x.read)?.length || 0);
+        (data?.complaints?.filter(x => !x.read)?.length || 0) +
+        (data?.awards?.filter(x => !x.read)?.length || 0);
 
     // Mark read then redirect
     const handleNotificationClick = (type: string, ref_id: number, redirectRoute: string) => {
@@ -143,6 +144,28 @@ export const NotificationMenu: React.FC = () => {
                                     🚨 {c.subject}
                                     <span className="text-xs opacity-75">
                                         {c.employee} vs {c.against} — {c.date}
+                                    </span>
+                                </DropdownMenuItem>
+                            ))}
+                        </>
+                    )}
+
+                    {data?.awards?.length > 0 && (
+                        <>
+                            <span className="text-[11px] font-semibold text-gray-500 px-3 py-1">🏆 Awards</span>
+                            {data.awards.map((a: any, i: number) => (
+                                <DropdownMenuItem
+                                    key={i}
+                                    onClick={() =>
+                                        handleNotificationClick('awards', a.id, route('hr.awards.index'))
+                                    }
+                                    className={`flex flex-col items-start text-sm cursor-pointer rounded-md ${
+                                        a.read ? 'bg-gray-100 text-gray-400' : 'font-semibold'
+                                    }`}
+                                >
+                                    🏆 {a.employee} {a.award_type}
+                                    <span className="text-xs opacity-75">
+                                        {a.date} — Gift: {a.gift ?? 'N/A'} {a.value ? ` (₹${a.value})` : ''}
                                     </span>
                                 </DropdownMenuItem>
                             ))}
