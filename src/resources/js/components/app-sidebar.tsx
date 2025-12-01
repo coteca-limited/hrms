@@ -956,7 +956,7 @@ export function AppSidebar() {
             className={style !== 'plain' ? 'sidebar-custom-style' : ''}
         >
             <SidebarHeader className={style !== 'plain' ? 'sidebar-styled' : ''} style={sidebarStyle}>
-                <div className="flex justify-center items-center p-2">
+                <div className="flex p-2">
                     <Link href={getFirstAvailableHref()} prefetch className="flex items-center justify-center">
                         {/* Logo for expanded sidebar */}
                         <div className="h-12 group-data-[collapsible=icon]:hidden flex items-center">
@@ -974,8 +974,8 @@ export function AppSidebar() {
                                         onError={() => updateBrandSettings({ [isDark ? 'logoLight' : 'logoDark']: '' })}
                                     />
                                 ) : (
-                                    <div className="h-12 text-inherit font-semibold flex items-center text-lg tracking-tight">
-                                        WorkDo
+                                    <div className="h-12 text-inherit font-extrabold flex items-center text-lg tracking-tight">
+                                        HRMS
                                     </div>
                                 );
                             })()}

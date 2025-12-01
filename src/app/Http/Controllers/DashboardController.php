@@ -131,7 +131,6 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // If user is employee, show limited dashboard
         if ($user->type === 'employee') {
             return $this->renderEmployeeDashboard();
         }
@@ -151,31 +150,33 @@ class DashboardController extends Controller
         $candidatesThisMonth = \App\Models\Candidate::whereIn('created_by', $companyUserIds)
             ->whereMonth('created_at', now()->month)->count();
 
-        // Attendance Statistics
+        // Attendance Statistics with date range filtering
         $presentToday = \App\Models\AttendanceRecord::whereIn('created_by', $companyUserIds)
             ->whereDate('date', today())->where('status', 'present')->count();
 
+        // Calculate absent today as total employees minus present employees
+        $absentToday = $totalEmployees - $presentToday;
+
         $attendanceRate = $totalEmployees > 0 ? round(($presentToday / $totalEmployees) * 100, 1) : 0;
 
-        // Leave Statistics
+        // Leave Statistics with date range filtering for pending leaves
         $pendingLeaves = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
             ->where('status', 'pending')->count();
 
-
-        $onLeaveToday = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
+        // On leave today statistics
+        $onLeaveTodayQuery = \App\Models\LeaveApplication::whereIn('created_by', $companyUserIds)
             ->where('status', 'approved');
 
         if (config('app.is_demo') == true) {
-            $onLeaveToday = $onLeaveToday->count();
+            $onLeaveToday = $onLeaveTodayQuery->count();
         } else {
-            $onLeaveToday = $onLeaveToday->whereDate('start_date', '<=', today())
-                ->whereDate('end_date', '>=', today())->count();
+            $onLeaveToday = $onLeaveTodayQuery
+                ->whereDate('start_date', '<=', today())
+                ->whereDate('end_date', '>=', today())
+                ->count();
         }
 
-
-
-
-        // Recruitment Statistics
+        // Other statistics
         $activeJobPostings = \App\Models\JobPosting::whereIn('created_by', $companyUserIds)
             ->where('status', 'Published')->count();
         $totalCandidates = \App\Models\Candidate::whereIn('created_by', $companyUserIds)->count();
@@ -202,8 +203,7 @@ class DashboardController extends Controller
                 ];
             });
 
-
-        // Monthly Hiring Trend for Chart (last 6 months)
+        // Other chart data
         $hiringTrend = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
@@ -217,7 +217,6 @@ class DashboardController extends Controller
             ];
         }
 
-        // Candidate Status Distribution for Chart
         $candidateStatusStats = \App\Models\Candidate::whereIn('created_by', $companyUserIds)
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
@@ -238,8 +237,6 @@ class DashboardController extends Controller
                 ];
             });
 
-
-        // Leave Types for Chart
         $leaveTypesStats = \App\Models\LeaveType::whereIn('created_by', $companyUserIds)
             ->get()
             ->map(function ($leaveType) {
@@ -250,7 +247,6 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Employee Growth Chart (Monthly for current year)
         $employeeGrowthChart = [];
         for ($month = 1; $month <= 12; $month++) {
             $count = User::where('type', 'employee')
@@ -276,22 +272,17 @@ class DashboardController extends Controller
                 ->get();
         }
 
-
-
-
         $recentCandidates = \App\Models\Candidate::whereIn('created_by', $companyUserIds)
             ->with(['job'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        // Recent Announcements
         $recentAnnouncements = \App\Models\Announcement::whereIn('created_by', $companyUserIds)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
 
-        // Recent Meetings
         $recentMeetings = \App\Models\Meeting::whereIn('created_by', $companyUserIds)
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -310,7 +301,8 @@ class DashboardController extends Controller
                 'pendingLeaves' => $pendingLeaves,
                 'onLeaveToday' => $onLeaveToday,
                 'activeJobPostings' => $activeJobPostings,
-                'totalCandidates' => $totalCandidates
+                'totalCandidates' => $totalCandidates,
+                'absentToday' => $absentToday,
             ],
             'charts' => [
                 'departmentStats' => $departmentStats,

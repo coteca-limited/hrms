@@ -1,13 +1,15 @@
-import React from 'react';
-import { PageTemplate } from '@/components/page-template';
+import { React, useState } from 'react';
+import { PageTemplate } from '@/components/custom-page-template';
 import { RefreshCw, Users, Building2, Briefcase, UserPlus, Calendar, Clock, TrendingUp, BarChart3, Bell } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { usePage } from '@inertiajs/react';
+import { usePage, router  } from '@inertiajs/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
 import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import DatePickerWithRange from "@/components/date-range-picker";
 
 interface CompanyDashboardData {
   stats: {
@@ -23,6 +25,7 @@ interface CompanyDashboardData {
     onLeaveToday: number;
     activeJobPostings: number;
     totalCandidates: number;
+    absentToday: number;
   };
   charts: {
     departmentStats: Array<{name: string; value: number; color: string}>;
@@ -51,6 +54,32 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
   const { t } = useTranslation();
   const { auth } = usePage().props as any;
 
+  const query = new URLSearchParams(window.location.search);
+
+  const [dateRange, setDateRange] = useState<{
+    startDate?: Date;
+    endDate?: Date;
+  }>({
+    startDate: query.get("start_date") ? new Date(query.get("start_date")!) : undefined,
+    endDate: query.get("end_date") ? new Date(query.get("end_date")!) : undefined,
+  });
+
+  const applyFilter = (range: { startDate: Date; endDate: Date } | undefined) => {
+    if (range && range.startDate && range.endDate) {
+      setDateRange(range);
+
+      const params: Record<string, string> = {
+        start_date: format(range.startDate, "yyyy-MM-dd"),
+        end_date: format(range.endDate, "yyyy-MM-dd"),
+      };
+
+      router.get("/dashboard", params, {
+        preserveScroll: true,
+        preserveState: true,
+      });
+    }
+  };
+
   const pageActions: PageAction[] = [
     {
       label: t('Refresh'),
@@ -72,7 +101,8 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
     pendingLeaves: 0,
     onLeaveToday: 0,
     activeJobPostings: 0,
-    totalCandidates: 0
+    totalCandidates: 0,
+    absentToday: 0,
   };
 
   const charts = dashboardData?.charts || {
@@ -94,7 +124,7 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
 
   const userType = dashboardData?.userType || 'employee';
   const isCompanyUser = userType === 'company';
-  
+
   const getStatusColor = (status: string) => {
     const colors = {
       'approved': 'bg-green-50 text-green-700 ring-green-600/20',
@@ -110,10 +140,16 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
   };
 
   return (
-    <PageTemplate 
+    <PageTemplate
       title={t('Dashboard')}
       url="/dashboard"
       actions={pageActions}
+    //   extraFilters={
+    //     <DatePickerWithRange
+    //       value={dateRange.startDate && dateRange.endDate ? dateRange : undefined}
+    //       onChange={applyFilter}
+    //     />
+    //   }
     >
       <div className="space-y-6">
         {/* Key Metrics */}
@@ -139,24 +175,9 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('Branches')}</p>
-                  <p className="mt-2 text-2xl font-bold">{stats.totalBranches}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.totalDepartments} {t('departments')}</p>
-                </div>
-                <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
-                  <Building2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('Attendance Rate')}</p>
                   <p className="mt-2 text-2xl font-bold">{stats.attendanceRate}%</p>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.presentToday} {t('present today')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{stats.presentToday} {t('present today')} - {stats.absentToday} {t('absent today')}</p>
                 </div>
                 <div className="rounded-full bg-purple-100 p-3 dark:bg-purple-900">
                   <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -175,6 +196,21 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
                 </div>
                 <div className="rounded-full bg-yellow-100 p-3 dark:bg-yellow-900">
                   <Calendar className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Branches')}</p>
+                  <p className="mt-2 text-2xl font-bold">{stats.totalBranches}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{stats.totalDepartments} {t('departments')}</p>
+                </div>
+                <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
+                  <Building2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
               </div>
             </CardContent>
@@ -359,7 +395,7 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{recentActivities.leaves.length}</Badge>
-                  <button 
+                  <button
                     onClick={() => window.location.href = route('hr.leave-applications.index')}
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md font-medium transition-colors"
                   >
@@ -413,11 +449,11 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
               <CardTitle className="flex items-center justify-between text-lg font-semibold">
                 <div className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
-                  {t('Recent Candidates')}
+                  {t('New Joinee')}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{recentActivities.candidates.length}</Badge>
-                  <button 
+                  <button
                     onClick={() => window.location.href = route('hr.recruitment.candidates.index')}
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md font-medium transition-colors"
                   >
@@ -469,7 +505,7 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{recentActivities.announcements.length}</Badge>
-                  <button 
+                  <button
                     onClick={() => window.location.href = route('hr.announcements.index')}
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md font-medium transition-colors"
                   >
@@ -523,7 +559,7 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{recentActivities.meetings.length}</Badge>
-                  <button 
+                  <button
                     onClick={() => window.location.href = route('meetings.meetings.index')}
                     className="px-2 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md font-medium transition-colors"
                   >
@@ -586,20 +622,20 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="month" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#ffffff', 
-                      border: '1px solid #e5e7eb', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e7eb',
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }} 
+                    }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="employees" 
-                    stroke="#3b82f6" 
+                  <Area
+                    type="monotone"
+                    dataKey="employees"
+                    stroke="#3b82f6"
                     strokeWidth={3}
-                    fillOpacity={0.2} 
+                    fillOpacity={0.2}
                     fill="#3b82f6"
                     dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
                   />

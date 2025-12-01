@@ -6,6 +6,7 @@ import { ProfileMenu } from '@/components/profile-menu';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { usePage, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import { NotificationMenu } from '@/components/notification-menu';
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { t } = useTranslation();
@@ -21,13 +22,14 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 </div>
                 <div className="flex items-center gap-2">
                     {(usePage().props as any).isImpersonating && (
-                        <button 
+                        <button
                             onClick={() => router.post(route('impersonate.leave'))}
                             className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 cursor-pointer"
                         >
                             {t("Return Back")}
                         </button>
                     )}
+                    <NotificationMenu />
                     <LanguageSwitcher />
                     <ProfileMenu />
                     {position === 'right' && <SidebarTrigger className="-mr-1" />}
