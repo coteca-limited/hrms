@@ -144,12 +144,12 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
       title={t('Dashboard')}
       url="/dashboard"
       actions={pageActions}
-      extraFilters={
-        <DatePickerWithRange
-          value={dateRange.startDate && dateRange.endDate ? dateRange : undefined}
-          onChange={applyFilter}
-        />
-      }
+    //   extraFilters={
+    //     <DatePickerWithRange
+    //       value={dateRange.startDate && dateRange.endDate ? dateRange : undefined}
+    //       onChange={applyFilter}
+    //     />
+    //   }
     >
       <div className="space-y-6">
         {/* Key Metrics */}
