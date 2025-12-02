@@ -120,7 +120,6 @@ class HandleInertiaRequests extends Middleware
 
         $read = NotificationRead::where('user_id', $user->id)->get()->groupBy('type');
 
-        // $isRead = fn($type, $ref) => $read[$type]->where('ref_id', $ref)->count() > 0 ?? false;
         $isRead = fn($type, $ref) => (($read[$type] ?? collect())->where('ref_id', $ref)->count()) > 0;
 
         return [
