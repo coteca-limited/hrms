@@ -23,7 +23,7 @@ function stripUseClientDirective(): import('vite').Plugin {
 }
 
 export default defineConfig({
-    base: '/build/',
+    base: './',
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/css/dark-mode.css', 'resources/js/app.tsx'],
@@ -55,11 +55,7 @@ export default defineConfig({
         },
     },
     build: {
-        outDir: 'public/build',
-        emptyOutDir: true,
-        manifest: true,
         rollupOptions: {
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
             output: {
                 manualChunks: {
                     vendor: ['react', 'react-dom'],
