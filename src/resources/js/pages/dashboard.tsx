@@ -1,15 +1,13 @@
-import { React, useState } from 'react';
-import { PageTemplate } from '@/components/custom-page-template';
+import React from 'react';
+import { PageTemplate } from '@/components/page-template';
 import { RefreshCw, Users, Building2, Briefcase, UserPlus, Calendar, Clock, TrendingUp, BarChart3, Bell } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { usePage, router  } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
 import { format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
-import DatePickerWithRange from "@/components/date-range-picker";
 
 interface CompanyDashboardData {
   stats: {
@@ -53,32 +51,6 @@ interface PageAction {
 export default function Dashboard({ dashboardData }: { dashboardData: CompanyDashboardData }) {
   const { t } = useTranslation();
   const { auth } = usePage().props as any;
-
-  const query = new URLSearchParams(window.location.search);
-
-  const [dateRange, setDateRange] = useState<{
-    startDate?: Date;
-    endDate?: Date;
-  }>({
-    startDate: query.get("start_date") ? new Date(query.get("start_date")!) : undefined,
-    endDate: query.get("end_date") ? new Date(query.get("end_date")!) : undefined,
-  });
-
-  const applyFilter = (range: { startDate: Date; endDate: Date } | undefined) => {
-    if (range && range.startDate && range.endDate) {
-      setDateRange(range);
-
-      const params: Record<string, string> = {
-        start_date: format(range.startDate, "yyyy-MM-dd"),
-        end_date: format(range.endDate, "yyyy-MM-dd"),
-      };
-
-      router.get("/dashboard", params, {
-        preserveScroll: true,
-        preserveState: true,
-      });
-    }
-  };
 
   const pageActions: PageAction[] = [
     {
@@ -144,12 +116,6 @@ export default function Dashboard({ dashboardData }: { dashboardData: CompanyDas
       title={t('Dashboard')}
       url="/dashboard"
       actions={pageActions}
-    //   extraFilters={
-    //     <DatePickerWithRange
-    //       value={dateRange.startDate && dateRange.endDate ? dateRange : undefined}
-    //       onChange={applyFilter}
-    //     />
-    //   }
     >
       <div className="space-y-6">
         {/* Key Metrics */}

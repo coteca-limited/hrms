@@ -15,8 +15,6 @@ import { initializeGlobalSettings } from './utils/globalSettings';
 import { initPerformanceMonitoring, lazyLoadImages } from './utils/performance';
 import './i18n'; // Import i18n configuration
 import './utils/axios-config'; // Import axios configuration
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
 
 // Initialize performance monitoring
 initPerformanceMonitoring();
