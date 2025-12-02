@@ -1187,3 +1187,6 @@ Route::post('payments/easebuzz/callback', [EasebuzzPaymentController::class, 'ca
 Route::post('/cookie-consent/store', [CookieConsentController::class, 'store'])->name('cookie.consent.store');
 Route::get('/cookie-consent/download', [CookieConsentController::class, 'download'])->name('cookie.consent.download');
 Route::post('/notifications/mark-read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+Route::get('{any}', function () {
+    return view('app'); // or 'main' - your React container view
+})->where('any', '.*');
